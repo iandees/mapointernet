@@ -4,7 +4,7 @@ import java.awt.Graphics;
 
 public class HilbertCurve extends Applet {
     private SimpleGraphics sg = null;
-    private int level = 3;
+    private int level = 4;
     private int dist0 = 512;
     private int dist = dist0;
 
@@ -87,8 +87,19 @@ class SimpleGraphics {
 
     public void lineRel(int deltaX, int deltaY) {
         g.drawLine(x, y, x + deltaX, y + deltaY);
-        //g.drawString(String.valueOf(step), x, y);
-        System.err.println(step + "\t" + x + "\t" + y);
+        System.err.print(step + "\t" + x + "\t" + y + "\t");
+        
+        if(deltaX < 0) {
+            System.err.println("R");
+        } else if(deltaX > 0) {
+            System.err.println("L");
+        }
+        
+        if(deltaY < 0) {
+            System.err.println("U");
+        } else if(deltaY > 0) {
+            System.err.println("D");
+        }
         
         x += deltaX;
         y += deltaY;

@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,7 +39,7 @@ public class HilbertSquareTime extends Applet {
 
     private Set<SquareInfo> squares = new HashSet<SquareInfo>();
 
-    private int overallPixelWidth = 2048;
+    private int overallPixelWidth = 768;
 
     private int level = 4;
 
@@ -48,6 +50,8 @@ public class HilbertSquareTime extends Applet {
     private int numberSquaresOnSide = overallPixelWidth / squareWidth;
 
     private int smallSquareWidth = squareWidth / sides;
+    
+    private int reallySmallSquareWidth = smallSquareWidth / sides;
 
     private BufferedImage image;
 
@@ -57,7 +61,7 @@ public class HilbertSquareTime extends Applet {
 
     boolean drawSquare = true;
 
-    boolean saveSquare = true;
+    boolean saveSquare = false;
 
     private double mostOnOneBlock;
 
@@ -113,6 +117,24 @@ public class HilbertSquareTime extends Applet {
         if (saveSquare) {
             saveBitmap();
         }
+    }
+
+    private void fixBoxRotations() {
+        for(int x = 0; x < numberSquaresOnSide; x++) {
+            for(int y = 0; y < numberSquaresOnSide; y++) {
+                fixBigBoxRotation(x, y);
+            }
+        }
+    }
+
+    private void fixBigBoxRotation(int x, int y) {
+        BufferedImage subimage = image.getSubimage(0, 0, 566, 566);
+        AffineTransform rotateImageTransform = AffineTransform.getRotateInstance(Math.toRadians(90.0), 128, 128);
+        AffineTransformOp rotateImageOp = new AffineTransformOp(rotateImageTransform, AffineTransformOp.TYPE_BICUBIC);
+        BufferedImage subOutputImage = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB);
+        rotateImageOp.filter(subimage, subOutputImage);
+        Graphics g = image.getGraphics();
+        g.drawImage(subOutputImage, 0, 0, this);
     }
 
     private void drawScale() {
