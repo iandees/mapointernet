@@ -16,6 +16,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
@@ -208,9 +210,8 @@ public class HilbertSquareTime extends Applet {
         g.setColor(Color.white);
         g.fillRect(0, 0, overallPixelWidth, overallPixelWidth);
 
-
-
-        // Draw the data
+        System.err.println("Zeroing data...");
+        // Zero out the data storage
         double[][][] data = new double[256][256][256];
         for(int i = 0; i < 256; i++) {
             for(int j = 0; j < 256; j++) {
@@ -219,33 +220,56 @@ public class HilbertSquareTime extends Applet {
                 }
             }
         }
-        File f = new File(FILE_BASE + "2006_12_24_10000_records.txt");
-        BufferedReader r = null;
-        try {
-            r = new BufferedReader(new FileReader(f));
-
-            String line = null;
-            while((line = r.readLine()) != null) {
-                // Parse the line
-                String[] splits = line.split(" ");
-                String ip = splits[1];
-                
-                String[] ipSplits = ip.split("\\.");
-                int classA = Integer.parseInt(ipSplits[0]);
-                int classB = Integer.parseInt(ipSplits[1]);
-                int classC = Integer.parseInt(ipSplits[2]);
-
-                data[classA][classB][classC]++;
-            }
-
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        System.err.println("... done.");
         
+        System.err.println("Reading points...");
+        long nPoints = 0;
+        for(int month = 11; month <= 12; month++) {
+            for(int day = 1; day <= 31; day++) {
+                // Read the file
+                File f = null;
+                if(day < 10) {
+                    f = new File(FILE_BASE + "mapki.access.log.2006-" + month + "-0" + day + "");
+                } else {
+                    f = new File(FILE_BASE + "mapki.access.log.2006-" + month + "-" + day + "");
+                }
+                System.err.println("Adding data for file " + f.getAbsolutePath());
+                BufferedReader r = null;
+                String line = null;
+                String ip = null;
+                try {
+                    r = new BufferedReader(new FileReader(f));
+
+                    while((line = r.readLine()) != null) {
+                        // Parse the line
+                        String[] splits = line.split(" ");
+                        ip = splits[0];
+
+                        String[] ipSplits = ip.split("\\.");
+                        int classA = Integer.parseInt(ipSplits[0]);
+                        int classB = Integer.parseInt(ipSplits[1]);
+                        int classC = Integer.parseInt(ipSplits[2]);
+
+                        data[classA][classB][classC]++;
+                        nPoints++;
+                    }
+
+                } catch (FileNotFoundException e) {
+                    System.err.println("File not found for day " + month + "" + day);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number format for ip:");
+                    System.err.println(ip);
+                    e.printStackTrace();
+                }
+            }
+        }
+        System.err.println("Read " + nPoints + " lines.");
+        System.err.println("... done.");
+        
+        System.err.print("Square rooting everything...");
         // Squirt everything
         for (int a = 0; a < 256; a++) {
             for (int b = 0; b < 256; b++) {
@@ -254,7 +278,9 @@ public class HilbertSquareTime extends Applet {
                 }
             }
         }
-        
+        System.err.println("done.");
+
+        System.err.println("Search for largest...");
         // Search for biggest
         double biggestVal = 0;
         for (int a = 0; a < 256; a++) {
@@ -268,7 +294,9 @@ public class HilbertSquareTime extends Applet {
         }
         mostOnOneBlock = biggestVal;
         System.err.println("biggestVal = " + mostOnOneBlock);
-        
+        System.err.println("done.");
+
+        System.err.print("Drawing dots");
         // Normalize and draw
         for (int a = 0; a < 256; a++) {
             Point aPoint = HilbertMap.getPoint(a);
@@ -287,7 +315,9 @@ public class HilbertSquareTime extends Applet {
                     g.fillRect(shiftedPoint.x, shiftedPoint.y, reallySmallSquareWidth, reallySmallSquareWidth);
                 }
             }
+            System.err.print(".");
         }
+        System.err.println("done.");
         
         // Big squares
         for (int xS = 0; xS < numberSquaresOnSide; xS++) {
