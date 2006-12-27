@@ -39,7 +39,7 @@ public class HilbertSquareTime extends Applet {
 
     private Set<SquareInfo> squares = new HashSet<SquareInfo>();
 
-    private int overallPixelWidth = 768;
+    private int overallPixelWidth = 4096;
 
     private int level = 4;
 
@@ -61,7 +61,7 @@ public class HilbertSquareTime extends Applet {
 
     boolean drawSquare = true;
 
-    boolean saveSquare = false;
+    boolean saveSquare = true;
 
     private double mostOnOneBlock;
 
@@ -211,10 +211,12 @@ public class HilbertSquareTime extends Applet {
 
 
         // Draw the data
-        double[][] data = new double[256][256];
+        double[][][] data = new double[256][256][256];
         for(int i = 0; i < 256; i++) {
             for(int j = 0; j < 256; j++) {
-                data[i][j] = 0;
+                for(int k = 0; k < 256; k++) {
+                    data[i][j][k] = 0;
+                }
             }
         }
         File f = new File(FILE_BASE + "2006_12_24_10000_records.txt");
@@ -231,8 +233,9 @@ public class HilbertSquareTime extends Applet {
                 String[] ipSplits = ip.split("\\.");
                 int classA = Integer.parseInt(ipSplits[0]);
                 int classB = Integer.parseInt(ipSplits[1]);
+                int classC = Integer.parseInt(ipSplits[2]);
 
-                data[classA][classB]++;
+                data[classA][classB][classC]++;
             }
 
         } catch (FileNotFoundException e) {
@@ -246,34 +249,43 @@ public class HilbertSquareTime extends Applet {
         // Squirt everything
         for (int a = 0; a < 256; a++) {
             for (int b = 0; b < 256; b++) {
-                data[a][b] = Math.sqrt(data[a][b]);
+                for (int c = 0; c < 256; c++) {
+                    data[a][b][c] = Math.sqrt(data[a][b][c]);
+                }
             }
         }
         
         // Search for biggest
         double biggestVal = 0;
-        for(int a = 0; a < 256; a++) {
-            for(int b = 0; b < 256; b++) {
-                if(data[a][b] > biggestVal) {
-                    biggestVal = data[a][b];
+        for (int a = 0; a < 256; a++) {
+            for (int b = 0; b < 256; b++) {
+                for (int c = 0; c < 256; c++) {
+                    if (data[a][b][c] > biggestVal) {
+                        biggestVal = data[a][b][c];
+                    }
                 }
             }
         }
         mostOnOneBlock = biggestVal;
+        System.err.println("biggestVal = " + mostOnOneBlock);
         
         // Normalize and draw
-        for(int a = 0; a < 256; a++) {
-            for(int b = 0; b < 256; b++) {
-                Point aPoint = HilbertMap.getPoint(a);
+        for (int a = 0; a < 256; a++) {
+            Point aPoint = HilbertMap.getPoint(a);
+            for (int b = 0; b < 256; b++) {
                 Point bPoint = HilbertMap.getPoint(b);
-                Point shiftedPoint = new Point((aPoint.x*squareWidth)+(bPoint.x*smallSquareWidth), (aPoint.y*squareWidth)+(bPoint.y*smallSquareWidth));
+                for (int c = 0; c < 256; c++) {
+                    Point cPoint = HilbertMap.getPoint(c);
+                    Point shiftedPoint = new Point((aPoint.x * squareWidth) + (bPoint.x * smallSquareWidth)
+                            + (cPoint.x * reallySmallSquareWidth), (aPoint.y * squareWidth)
+                            + (bPoint.y * smallSquareWidth) + (cPoint.y * reallySmallSquareWidth));
 
-                int normalized = (int) ((((double) (data[a][b]) / (double) biggestVal) * 765.0));
-                
-                
-                Color c = generateColor(normalized);
-                g.setColor(c);
-                g.fillRect(shiftedPoint.x, shiftedPoint.y, smallSquareWidth, smallSquareWidth);
+                    int normalized = (int) ((((double) (data[a][b][c]) / (double) biggestVal) * 765.0));
+
+                    Color color = generateColor(normalized);
+                    g.setColor(color);
+                    g.fillRect(shiftedPoint.x, shiftedPoint.y, reallySmallSquareWidth, reallySmallSquareWidth);
+                }
             }
         }
         
@@ -339,11 +351,6 @@ public class HilbertSquareTime extends Applet {
         }
         
         return new Color(red, green, blue);
-    }
-
-    private void updateStatus() {
-        // TODO Auto-generated method stub
-
     }
 
     public void paint(Graphics g) {
