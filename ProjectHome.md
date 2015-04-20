@@ -1,0 +1,1 @@
+Expanding on the XKCD comic called "Map of the Internet," this project aims to create a detailed (down to the 0.0.0.0/16 level) map of the internet visualization using a Hilbert curve. The location of the second "digit" of the IP address is determined by using another Hilbert curve within the square of the larger Hilbert curve.
